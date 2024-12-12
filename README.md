@@ -1,13 +1,13 @@
-# arweave-python-client
+# arweave-python-client2.0
 
 This client allows you to integrate your Python apps with the Arweave network, enabling wallet operations, transactions, and data storage.
 
 ## Installing
 
-To use the library, simply install it:
+The library can only be installed and used locally. To run it locally;
 
 ```bash
-pip install arweave-python-client
+pip install .
 ```
 
 ## Using Your Wallet
@@ -179,27 +179,79 @@ transactions = arweave.arql_with_transaction_data(
 
 ## New Features and Enhancements
 
-### 1. Batch Transactions
+### 1. Transaction Listener.
 
-Create multiple transactions and send them in one batch to improve efficiency:
-
-```python
-def create_batch_transactions(wallet, transactions):
-    # Implement batch transaction logic here
-    pass
-```
-
-### 2. Enhanced Wallet Recovery Options
-
-Provide multiple recovery methods, including mnemonic phrases:
+A function to listen for transaction confirmations or specific events.
 
 ```python
-def recover_wallet_from_mnemonic(mnemonic):
-    # Implement recovery logic here
-    pass
+def listen_for_transaction(wallet, tx_id, callback):
+    while True:
+        status = Transaction(wallet, id=tx_id).get_status()
+        if status == 'confirmed':
+            callback(tx_id)
+            break
+
+
 ```
 
-### 3. Transaction Scheduling
+### 2. Batch Transactions
+
+Enable sending multiple transactions in a single function call to reduce overhead for bulk operations.
+
+```python
+def send_batch_transactions(wallet, transactions):
+    for tx in transactions:
+        tx.sign()
+        tx.send()
+```
+
+### 3. Transaction Fee Estimator.
+
+Provide an estimated transaction fee based on the size of data being uploaded.
+
+```python
+def estimate_transaction_fee(data_size):
+    # Estimate fee based on Arweave's pricing model
+    return data_size * fee_per_byte
+```
+
+### 3. Metadata Management for Files.
+
+Add the ability to attach and retrieve metadata for uploaded files.
+
+```python
+def add_metadata(transaction, metadata):
+    for key, value in metadata.items():
+        transaction.add_tag(key, value)
+```
+
+### 4. Data Compression for Efficient Storage.
+
+Compress data before uploading to save storage space and reduce costs.
+
+```python
+import zlib
+def compress_and_store_data(wallet, data):
+    compressed_data = zlib.compress(data.encode())
+    transaction = arweave.Transaction(wallet, data=compressed_data)
+    transaction.add_tag('Content-Encoding', 'gzip')
+    transaction.sign()
+    transaction.send()
+```
+
+### 5. Real-Time Blockchain Sync.
+
+Synchronize wallet activity or track transactions in real-time.
+
+```python
+def sync_with_blockchain(wallet, callback):
+    while True:
+        current_balance = wallet.balance
+        callback(current_balance)
+        time.sleep(10)  # Sync every 10 seconds
+```
+
+### 6. Transaction Scheduling.
 
 Schedule transactions to execute at specific times:
 
@@ -213,13 +265,12 @@ def schedule_transaction(transaction, execute_at):
     transaction.send()
 ```
 
-### 4. Data Encryption for Secure Storage
+### 7. Data Encryption for Secure Storage.
 
 Encrypt data before uploading to ensure privacy:
 
 ```python
 from cryptography.fernet import Fernet
-
 def encrypt_and_store(wallet, data):
     key = Fernet.generate_key()
     cipher = Fernet(key)
@@ -231,46 +282,35 @@ def encrypt_and_store(wallet, data):
     return key  # Store key securely
 ```
 
-### 5. Data Compression for Efficient Storage
+### 8. Custom API Endpoints.
 
-Compress data before uploading to save storage space:
-
-```python
-import zlib
-
-def compress_and_store_data(wallet, data):
-    compressed_data = zlib.compress(data.encode())
-    transaction = Transaction(wallet, data=compressed_data)
-    transaction.add_tag('Content-Encoding', 'gzip')
-    transaction.sign()
-    transaction.send()
-```
-
-### 6. Support for Bundled Transactions
-
-Bundle smaller transactions into one for efficiency:
+Allow setting custom API endpoints for different environments (e.g., development, testing, production):
 
 ```python
-def create_bundled_transaction(wallet, transactions):
-    # Combine multiple transactions into one
-    pass
+def set_custom_api_endpoint(wallet, endpoint):
+    wallet.api_url = endpoint
 ```
 
-### 7. Real-Time Blockchain Sync
+### 9. Multi-Wallet Support.
 
-Synchronize wallet activity or track transactions in real-time:
+Enable managing multiple wallets simultaneously:
 
 ```python
-import time
-
-def sync_with_blockchain(wallet, callback):
-    while True:
-        current_balance = wallet.balance
-        callback(current_balance)
-        time.sleep(10)  # Sync every 10 seconds
+def set_custom_api_endpoint(wallet, endpoint):
+    wallet.api_url = endpoint
 ```
 
-### 8. Advanced Logging and Debugging
+### 10. Multi-Wallet Support
+
+Enable managing multiple wallets simultaneously.
+
+```python
+def load_multiple_wallets(wallet_paths):
+    wallets = [Wallet(path) for path in wallet_paths]
+    return wallets
+```
+
+### 11. Advanced Logging and Debugging.
 
 Enable detailed logging to monitor transaction status, network calls, and errors:
 
@@ -283,43 +323,4 @@ def enable_advanced_logging(log_file):
         level=logging.DEBUG,
         format='%(asctime)s %(levelname)s %(message)s'
     )
-```
-
-### 9. Custom API Endpoints
-
-Allow setting custom API endpoints for different environments (e.g., development, testing, production):
-
-```python
-def set_custom_api_endpoint(wallet, endpoint):
-    wallet.api_url = endpoint
-```
-
-### 10. Multi-Wallet Support
-
-Enable managing multiple wallets simultaneously:
-
-```python
-def load_multiple_wallets(wallet_paths):
-    wallets = [Wallet(path) for path in wallet_paths]
-    return wallets
-```
-
-### 11. Enhanced Security Features
-
-Add two-factor authentication (2FA) for transaction signing:
-
-```python
-def enable_2fa(wallet, token):
-    # Validate the token and enable 2FA
-    pass
-```
-
-### 12. Offline Transaction Signing
-
-Allow users to sign transactions offline and upload them later:
-
-```python
-def sign_transaction_offline(wallet, transaction):
-    transaction.sign()
-    return transaction
 ```
